@@ -1,0 +1,8 @@
+name = "VAEonMNIST"
+uuid = "e6dd4800-8ba6-469c-9cb6-d14a714fabc3"
+authors = ["filouscience <381931+filouscience@users.noreply.github.com>"]
+version = "0.1.0"
+
+[deps]
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+MLDatasets = "eb30cadb-4394-5ae3-aed4-317e484a6458"
