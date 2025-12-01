@@ -2,7 +2,7 @@ module ae_module
 
 export AE, ae_loss
 
-import VAEonMNIST:Reshaper, Decoder
+import VAEonMNIST: Reshaper, Decoder
 using  Flux
 
 struct Encoder{T <: Chain}
@@ -48,7 +48,7 @@ function Flux.trainable(ae::AE)
 end
 
 function ae_loss(model, x, y)
-    return Flux.binarycrossentropy(model(x), y);
+    return Flux.binarycrossentropy(model(x), y, agg=sum) / (size(x)[end]); # batch-average
 end
 
 

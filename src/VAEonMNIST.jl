@@ -14,7 +14,7 @@ function load_dataset()
     return (train_x, train_y, test_x, test_y);
 end
 
-function train_epoch!(model, loss, train_x, train_y; batch_size=128)
+function train_epoch!(model, loss, train_x, train_y; batch_size=8)
     optimiser = Flux.Adam();
     opt_state = Flux.setup(optimiser, model);
     batches = Flux.DataLoader((train_x, train_y); batchsize = batch_size, shuffle = true);
@@ -57,6 +57,8 @@ Flux.trainable(d::Decoder) = (; m = d.m); # NamedTuple (names the same as field 
 
 include("ae_module.jl"); # vanilla AutoEncoder
 using .ae_module
+include("vae_module.jl"); # Variational AutoEncoder (VAE)
+using .vae_module
 
 
 
