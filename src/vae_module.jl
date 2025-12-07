@@ -1,6 +1,6 @@
 module vae_module
 
-export VAE, vae_loss
+export VAE, VAE_loss
 
 import VAEonMNIST: Reshaper, Decoder
 using  Flux
@@ -63,14 +63,19 @@ end
 function KL(model, x)
     # latent space
     (mean, logsig2) = x |> model.enco;
-    return 0.5 * sum( mean .^2 .+ exp.(logsig2) .- logsig2 .- 1.0 ) / (size(x)[end]); # batch-average
+    return 0.5f0 * sum( mean .^2 .+ exp.(logsig2) .- logsig2 .- 1.0f0 ) / (size(x)[end]); # batch-average
 end
 
-function vae_loss(model, x, y)
+struct VAE_loss
+    β::Float32
+    VAE_loss() = return new(1.f0);
+    VAE_loss(b::Float32) = return new(b);
+end
+function (loss::VAE_loss)(model, x, y)
     # negative ELBO:
-    # reconstruction loss (neg log likelihood) + KL divergence
+    # reconstruction_loss (neg log likelihood) + β * KL_divergence
     nll = Flux.binarycrossentropy(model(x), y, agg=sum) / (size(x)[end]); # batch-average
-    return nll + KL(model, x);
+    return nll + loss.β * KL(model, x);
 end
 
 

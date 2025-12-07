@@ -1,6 +1,6 @@
 module ae_module
 
-export AE, ae_loss
+export AE, AE_loss
 
 import VAEonMNIST: Reshaper, Decoder
 using  Flux
@@ -47,7 +47,8 @@ function Flux.trainable(ae::AE)
     return (; enco = ae.enco, deco = ae.deco ); # NamedTuple (names the same as field names of trainables)
 end
 
-function ae_loss(model, x, y)
+struct AE_loss end
+function (loss::AE_loss)(model, x, y) 
     return Flux.binarycrossentropy(model(x), y, agg=sum) / (size(x)[end]); # batch-average
 end
 

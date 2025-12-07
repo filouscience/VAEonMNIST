@@ -5,6 +5,7 @@ import MLDatasets;
 using  Flux;
 
 show_trainable(x) = Flux.trainable(x); # development purposes
+nll(model, x, y) = Flux.binarycrossentropy(model(x), y, agg=sum) / (size(x)[end]);
 
 function load_dataset()
     train_x, train_y = MLDatasets.MNIST(Float32, split=:train)[:];
@@ -14,7 +15,7 @@ function load_dataset()
     return (train_x, train_y, test_x, test_y);
 end
 
-function train_epoch!(model, loss, train_x, train_y; batch_size=8)
+function train_epoch!(model, loss, train_x, train_y; batch_size=16)
     optimiser = Flux.Adam();
     opt_state = Flux.setup(optimiser, model);
     batches = Flux.DataLoader((train_x, train_y); batchsize = batch_size, shuffle = true);
