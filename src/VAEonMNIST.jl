@@ -1,10 +1,11 @@
 module VAEonMNIST
 
+#export
 
 import MLDatasets;
 using  Flux;
 
-show_trainable(x) = Flux.trainable(x); # development purposes
+# development purposes
 nll(model, x, y) = Flux.binarycrossentropy(model(x), y, agg=sum) / (size(x)[end]);
 
 function load_dataset()
@@ -60,7 +61,8 @@ include("ae_module.jl"); # vanilla AutoEncoder
 using .ae_module
 include("vae_module.jl"); # Variational AutoEncoder (VAE)
 using .vae_module
-
+include("cvae_module.jl"); # Conditional VAE (CVAE)
+using .cvae_module
 
 
 end # module VAEonMNIST

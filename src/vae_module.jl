@@ -74,7 +74,7 @@ end
 function (loss::VAE_loss)(model, x, y)
     # negative ELBO:
     # reconstruction_loss (neg log likelihood) + β * KL_divergence
-    nll = Flux.binarycrossentropy(model(x), y, agg=sum) / (size(x)[end]); # batch-average
+    nll = Flux.binarycrossentropy(model(x), x, agg=sum) / (size(x)[end]); # batch-average
     return nll + loss.β * KL(model, x);
 end
 

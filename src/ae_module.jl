@@ -49,7 +49,7 @@ end
 
 struct AE_loss end
 function (loss::AE_loss)(model, x, y) 
-    return Flux.binarycrossentropy(model(x), y, agg=sum) / (size(x)[end]); # batch-average
+    return Flux.binarycrossentropy(model(x), x, agg=sum) / (size(x)[end]); # batch-average
 end
 
 
