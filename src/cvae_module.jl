@@ -4,8 +4,8 @@ export CVAE, CVAE_loss
 
 import VAEonMNIST: Reshaper, Decoder
 using  Flux
-import Flux.OneHotArrays as oh
-import Flux.Zygote as Zygote
+import Flux.OneHotArrays as OneHot
+import Flux.ChainRulesCore as ChainRules
 using  Random
 
 struct CVarEncoder
@@ -33,12 +33,17 @@ struct CVarEncoder
 end
 function (e::CVarEncoder)(x)
     feat = x |> e.encode_feat;
-    return (feat |> e.encode_mean, feat |> e.encode_logsig2, feat |> e.encode_class |> softmax);
+    return (feat |> e.encode_mean,
+            feat |> e.encode_logsig2,
+            feat |> e.encode_class |> softmax);
 end
 Flux.@layer CVarEncoder;
 function Flux.trainable(e::CVarEncoder)
     # NamedTuple (names the same as field names of trainables)
-    return (; encode_feat = e.encode_feat, encode_mean = e.encode_mean, encode_logsig2 = e.encode_logsig2, encode_class = e.encode_class);
+    return (; encode_feat = e.encode_feat,
+              encode_mean = e.encode_mean,
+              encode_logsig2 = e.encode_logsig2,
+              encode_class = e.encode_class);
 end
 
 struct CVAE
@@ -72,29 +77,30 @@ end
 
 function class_loss(model, x, y)
     (mean, logsig2, class) = x |> model.enco;
-    one_hot = oh.onehotbatch(y, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    one_hot = OneHot.onehotbatch(y, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     return Flux.crossentropy(class, one_hot, agg=sum) / (size(x)[end]);
 end
 
 struct CVAE_loss
     β::Float32
+    #γ::Float32
     CVAE_loss() = return new(1.f0);
     CVAE_loss(b::Float32) = return new(b);
 end
 function (loss::CVAE_loss)(model, x, y)
 
-    # encoder / classifier
+    # encoder AND classifier
     (mean, logsig2, class) = x |> model.enco;
     
     # classification loss
-    one_hot = oh.onehotbatch(y, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    one_hot = OneHot.onehotbatch(y, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     c_loss = Flux.crossentropy(class, one_hot, agg=sum) / (size(x)[end]); # batch-average
     
     # reparametrization trick:
     z::Matrix{Float32} = mean .+ exp.(logsig2 ./ 2) .* randn(Float32, size(logsig2) );
     
-    # conditional decoder (do not backpropagate reconstruction loss through class conditioning)
-    r_x =  [z; Zygote.dropgrad(class)] |> model.deco;
+    # conditional decoder (do not backpropagate reconstruction loss through class condition)
+    r_x =  [z; ChainRules.ignore_derivatives(class)] |> model.deco;
     
     # reconstruction loss
     r_loss = Flux.binarycrossentropy(r_x, x, agg=sum) / (size(x)[end]); # batch-average
