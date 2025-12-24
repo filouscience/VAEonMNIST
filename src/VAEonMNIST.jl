@@ -7,6 +7,7 @@ using  Flux;
 
 # development purposes
 nll(model, x, y) = Flux.binarycrossentropy(model(x), y, agg=sum) / (size(x)[end]);
+one_hot(y::Vector{<:Integer}) = Flux.OneHotArrays.onehotbatch(y, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
 function load_dataset()
     train_x, train_y = MLDatasets.MNIST(Float32, split=:train)[:];
@@ -23,6 +24,33 @@ function train_epoch!(model, loss, train_x, train_y; batch_size=16)
     Flux.train!(loss, model, batches, opt_state);
 end
 
+function one_hot(y::Integer; zero_pad=0)
+    y >= 0 || println("warning: negative numbers not supported. taking abs.");
+    y = abs(y);
+    y1 = y;
+    if (y > 9 || zero_pad > 0)
+        n = Integer(floor(log10(y)+1));
+        y1 = zeros(Integer, n+zero_pad); # vector
+        for i in 1:n
+            y1[i] = y % 10;
+            y = Integer(floor(y / 10));
+        end
+        y1 = y1 |> reverse;
+    end
+    return Flux.OneHotArrays.onehotbatch(y1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+end
+
+function prep4plot(whcn::Array{Float32}; row_length=100)
+    len = size(whcn)[end];
+    mat = ones(Float32, Integer(ceil(len / row_length))*28, min(len, row_length)*28);
+    for itr in 1:len
+        i = Integer(ceil(itr / row_length));
+        j = (itr-1) % row_length + 1;
+        mat[(i-1)*28+1 : i*28, (j-1)*28+1 : j*28] = -reverse( whcn[:,:,1,itr]; dims=2)' .+ 1.f0;
+    end
+    return mat;
+end
+    
 struct Reshaper
     dims::Tuple
     function Reshaper(dims...)

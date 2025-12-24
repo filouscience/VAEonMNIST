@@ -1,8 +1,8 @@
 module cvae_module
 
-export CVAE, CVAE_loss
+export CVAE, CVAE_loss, generate
 
-import VAEonMNIST: Reshaper, Decoder
+import VAEonMNIST: Reshaper, Decoder, one_hot
 using  Flux
 import Flux.OneHotArrays as OneHot
 import Flux.ChainRulesCore as ChainRules
@@ -109,5 +109,22 @@ function (loss::CVAE_loss)(model, x, y)
     return r_loss + c_loss + loss.β * KL(model, x);
 end
 
+function generate(model::CVAE, num::Integer, sty::Array{Float32}; zero_pad=0)
+
+    onh = one_hot(num, zero_pad=zero_pad);
+    
+    # reshape to 2D array (in case of a single sample)
+    onh = reshape(onh, (size(onh)[1],:));
+    sty = reshape(sty, (size(sty)[1],:));
+
+    # meshgrid (each digit, each style)
+    len1 = size(onh)[end];
+    len2 = size(sty)[end];
+    lat = reshape(stack([sty for i in 1:len1], dims=3), (:,len1*len2));
+    cls = reshape(stack([onh for i in 1:len2], dims=2), (:,len1*len2));
+    whcn = model.deco([lat; cls]);
+    
+    return whcn;
+end
 
 end # module cvae_module
