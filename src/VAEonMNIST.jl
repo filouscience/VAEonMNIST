@@ -40,6 +40,21 @@ function one_hot(y::Integer; zero_pad=0)
     return Flux.OneHotArrays.onehotbatch(y1, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 end
 
+"""
+# prep4plot
+        prep4plot(whcn::Array{Float32}; row_length=100)
+
+Prepares a 2D matrix of gray-scale pixels from a WHCN array `whcn` (single channel assumed).
+It can be then plotted using `heatmap` from `Plots.jl`
+Individual digits are sorted in rows of maximum length given by `row_length` key-word argument.
+
+### Example
+```julia-repl
+julia> mat = prep4plot(whcn);
+julia> using Plots
+julia> heatmap(mat)
+```
+"""
 function prep4plot(whcn::Array{Float32}; row_length=100)
     len = size(whcn)[end];
     mat = ones(Float32, Integer(ceil(len / row_length))*28, min(len, row_length)*28);

@@ -109,6 +109,24 @@ function (loss::CVAE_loss)(model, x, y)
     return r_loss + c_loss + loss.β * KL(model, x);
 end
 
+"""
+# generate
+        generate(model::CVAE, num::Integer, sty::Array{Float32}; zero_pad=0)
+
+Uses given CVAE `model` to generate an array representing the images of each digit of `num` in the form of WHCN array (same as training dataset).
+The style vector `sty` length matches the latent space dimension.
+Multiple styles can be passed at once as a 2D array. All digits are then generated for each style.
+Optionally, `zero_pad` zeros are prepended to the given number `num`.
+
+### Example
+```julia-repl
+julia> generate(cvae, 12345, one_style; zero_pad=1)
+28×28×1×6 Array{Float32, 4}
+
+julia> generate(cvae, 12345, two_styles; zero_pad=1)
+28×28×1×12 Array{Float32, 4}
+```
+"""
 function generate(model::CVAE, num::Integer, sty::Array{Float32}; zero_pad=0)
 
     onh = one_hot(num, zero_pad=zero_pad);
